@@ -12,20 +12,30 @@ class PrimaryWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Main User Menu")
-        self.setMinimumSize(100,100)
+        self.setMinimumSize(400,100)
         self.setStyleSheet("QMainWindow {background-color: #f0e9dd}")
 
         self.current_date = datetime.now().strftime('%m/%d/%Y')
 
         # Secondary window access - Add shopping cart
         self.secondary_window = None
+
         self.add_shopping_cart = QAction(QIcon("project_icons/add_shopping_cart.png"), "Add Cart", self)
         self.add_shopping_cart.triggered.connect(self.__secondary_window_make_visible)
+
+        self.load_shopping_carts = QAction(QIcon("project_icons/load_shopping_carts.png"), "Load Carts", self)
+        self.load_shopping_carts.triggered.connect(self.__load_shopping_carts)
+
+        self.cart_combobox = QComboBox()
+        # self.cart_combobox.addItems(["SELECT"])
+        # self.cart_combobox.setHidden(True)
 
         self.toolbar = QToolBar()
         self.toolbar.setMovable(True)
         self.addToolBar(self.toolbar)
         self.toolbar.addAction(self.add_shopping_cart)
+        self.toolbar.addAction(self.load_shopping_carts)
+        # self.toolbar.addWidget(self.cart_combobox)
 
         self.shopper_name_label = QLabel("Shopper Name: ")
         self.shopper_name_input = QLineEdit()
@@ -52,7 +62,7 @@ class PrimaryWindow(QMainWindow):
             self.__insert_shopping_data(shopping_id, cart_date)
             self.secondary_window = ShoppingCart(shopping_id, cart_date, self.shopper_name_input.text())
             self.secondary_window.show()
-            primary_obj.close()
+            primary_obj.hide()
 
     def __secondary_window_preliminary_data_check(self):
         error_widget = QMessageBox()
@@ -82,6 +92,28 @@ class PrimaryWindow(QMainWindow):
         connection.commit()
         cursor.close()
         connection.close()
+
+    def __load_shopping_carts(self):
+
+        cart_list = ['Select']
+        cart_data = self.__fetch_shopping_cart_ids()
+        for cart in cart_data:
+            cart_list.append(cart[0])
+        print(cart_list)
+        # self.cart_combobox.clear()
+        self.cart_combobox.addItems(cart_list)
+        self.toolbar.addWidget(self.cart_combobox)
+        # self.cart_combobox.addItems(cart_list)
+        # self.cart_combobox.setVisible(True)
+
+
+    @staticmethod
+    def __fetch_shopping_cart_ids():
+        connection = sqlite3.connect("ShoppingCartDB.db")
+        cursor = connection.cursor()
+        cursor.execute("SELECT DISTINCT shopping_id FROM shoppingcart")
+        shop_ids = cursor.fetchall()
+        return [shop_id for shop_id in shop_ids]
 
 app = QApplication(sys.argv)
 primary_obj = PrimaryWindow()

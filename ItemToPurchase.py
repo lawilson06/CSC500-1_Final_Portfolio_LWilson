@@ -49,45 +49,45 @@ class ItemToPurchase(QDialog):
     def __check_user_input(self):
         error_widget = QMessageBox()
         error_widget.setWindowTitle("Error")
-        item_quantity = 0
-        item_price = 0.00
-        item_name = ''
-        item_description = ''
+        print("Hello")
+        item_quantity = -1
+        item_price = 0
         valid_entries = False
 
         try:
             item_quantity = int(self.__item_quantity.text())
+            print(item_quantity)
             item_price = round(float(self.__item_price.text()), 2)
+            print(item_price)
             valid_entries = True
         except Exception as e:
             print(e)
-            error_widget.setText("Must enter valid values.")
+            error_widget.setText("Enter a valid values for price/quantity.")
             error_widget.exec()
 
-        if len(self.__item_name.text() >= 0):
-            item_name = self.__item_name.text()
-        else:
+        if len(self.__item_name.text()) <= 0:
             valid_entries = False
-            error_widget.setText("Must enter an item name.")
+            error_widget.setText("Enter a valid name.")
             error_widget.exec()
 
-        if len(self.__item_description.text() >= 0):
-            item_name = self.__item_name.text()
-        else:
+        if len(self.__item_description.text()) <= 0:
             valid_entries = False
-            error_widget.setText("Must enter an item description.")
+            error_widget.setText("Enter a valid description.")
             error_widget.exec()
 
-        return valid_entries, item_quantity, item_price, item_name.capitalize(), item_description.lower()
+        return valid_entries, item_quantity, item_price
 
     def __insert_shopping_item(self):
-        valid_entries, item_quantity, item_price, item_name, item_description = self.__check_user_input()
-
+        valid_entries, item_quantity, item_price = self.__check_user_input()
+        print(item_quantity, item_price)
         if valid_entries:
             connection = sqlite3.connect("ShoppingCartDB.db")
             cursor = connection.cursor()
-            cursor.execute("INSERT INTO shoppingcart (item_name, item_price, item_quantity, item_description, shopping_id)"
-                           "VALUES (?, ?, ?, ?, ?)", ('Test',5.55,2,'Testing', self.shopping_id)) #update parameters
+            cursor.execute("INSERT INTO shoppingcart (item_name, item_price, item_quantity, item_description, "
+                           "shopping_id) VALUES (?, ?, ?, ?, ?)", (self.__item_name.text(), item_price,
+                                                                   item_quantity, self.__item_description.text(),
+                                                                   self.shopping_id))
             connection.commit()
             cursor.close()
             connection.close()
+            self.close()
