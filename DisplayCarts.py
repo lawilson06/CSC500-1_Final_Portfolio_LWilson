@@ -1,8 +1,6 @@
 from PyQt6.QtWidgets import (QApplication, QLabel, QWidget, QGridLayout, \
                              QLineEdit, QPushButton, QMainWindow, QTableWidget, QTableWidgetItem,
                              QDialog, QVBoxLayout, QComboBox, QToolBar, QStatusBar, QHeaderView, QMessageBox)
-from PyQt6.QtGui import QAction, QColor, QIcon
-import sys
 import sqlite3
 
 class DisplayCarts(QDialog):
@@ -27,6 +25,7 @@ class DisplayCarts(QDialog):
         self.display_cost_button.clicked.connect(self.__display_cart_total)
 
         self.display_descriptions_button = QPushButton("Display Cart Descriptions")
+        self.display_descriptions_button.clicked.connect(self.__display_cart_descriptions)
 
         layout = QVBoxLayout()
 
@@ -68,16 +67,31 @@ class DisplayCarts(QDialog):
             self.cart_quantity += cart[3]
         print(self.cart_total)
 
-    def __display_cart_total(self):
-        display_total = QMessageBox()
-        display_total.setWindowTitle(self.shopping_id)
-        display_text = ""
-        self.__calculate_cart_total()
+    def __display_name_date_helper(self):
+        display_msg = QMessageBox()
+        display_msg.setWindowTitle(self.shopping_id)
         cust_name, cart_date = self.__retrieve_user_data()
+        display_text = ""
         display_text += f"{cust_name}'s Shopping Cart - {cart_date} \n"
+        return display_text, display_msg
+
+    def __display_cart_total(self):
+        self.__calculate_cart_total()
+        display_text, display_total = self.__display_name_date_helper()
         display_text += f"Number of Items: {self.cart_quantity} \n"
         for cart in self.payload:
             display_text += f"{cart[1]} {cart[3]} @ {cart[2]} = {(cart[2] * cart[3]):.2f} \n"
         display_text += f"Cart Total: ${self.cart_total:.2f}"
         display_total.setText(display_text)
         display_total.exec()
+
+    def __display_cart_descriptions(self):
+       display_text, display_descriptions = self.__display_name_date_helper()
+       display_text += "Item Descriptions \n"
+       for cart in self.payload:
+           display_text += f"{cart[1]}: {cart[4]} \n"
+       display_descriptions.setText(display_text)
+       display_descriptions.exec()
+
+
+

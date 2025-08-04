@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import (QApplication, QLabel, QWidget, QGridLayout, \
                              QLineEdit, QPushButton, QMainWindow, QTableWidget, QTableWidgetItem,
                              QDialog, QVBoxLayout, QComboBox, QToolBar, QStatusBar, QHeaderView, QMessageBox)
 from PyQt6.QtGui import QAction, QColor, QIcon
-import sys
+from PyQt6.QtCore import QTimer
 import sqlite3
 from ItemToPurchase import ItemToPurchase
 
@@ -14,8 +14,14 @@ class ShoppingCart(QMainWindow):
         self.setMinimumSize(800, 600)
         self.primary_window = primary_window
 
+        self.payload = None
+        self.cart_total = None
+        self.cart_quantity = None
+
         self.add_shopping_item = QAction(QIcon("project_icons/add_shopping_cart.png"), "Add Item to Purchase", self)
         self.add_shopping_item.triggered.connect(self.__add_purchase_item)
+        self.cart_output = QAction(QIcon("project_icons/cart_total.png"), "View Current Cart Totals", self)
+        self.cart_output.triggered.connect(self.__display_cart_total)
         self.update_shopping_item = QAction(QIcon("project_icons/update_shopping_cart.png"), "Update Cart Item", self)
         self.update_shopping_item.triggered.connect(self.__update_purchase_item)
         self.remove_shopping_item =QAction(QIcon("project_icons/remove_item_shopping_cart.png"), "Remove Cart Item",
@@ -25,6 +31,7 @@ class ShoppingCart(QMainWindow):
         self.toolbar = QToolBar()
         self.toolbar.setMovable(True)
         self.addToolBar(self.toolbar)
+        self.toolbar.addAction(self.cart_output)
         self.toolbar.addAction(self.add_shopping_item)
 
 
@@ -54,18 +61,27 @@ class ShoppingCart(QMainWindow):
         self.primary_window.show()
         self.primary_window.secondary_window = None
         self.primary_window.shopper_name_input.clear()
+        QTimer.singleShot(1, self.primary_window.load_shopping_carts.trigger)
         event.accept()
 
     def __populate_table(self):
+        self.cart_total = 0
+        self.cart_quantity = 0
         connection = sqlite3.connect("ShoppingCartDB.db")
-        payload = connection.execute("SELECT id, item_name, item_price, item_quantity, item_description "
+        cursor = connection.cursor()
+        cursor.execute("SELECT id, item_name, item_price, item_quantity, item_description "
                                      "FROM shoppingcart WHERE shopping_id = ?", (self.shopping_id,))
+        self.payload = cursor.fetchall()
+        for rec in self.payload:
+            self.cart_total += (rec[2] * rec[3])
+            self.cart_quantity += rec[3]
         self.table.setRowCount(0)
-        for index, row_item in enumerate(payload):
+        for index, row_item in enumerate(self.payload):
             print(index, row_item)
             self.table.insertRow(index)
             for col_index, col_item in enumerate(row_item):
                 self.table.setItem(index, col_index, QTableWidgetItem(str(col_item)))
+        cursor.close()
         connection.close()
 
     def __add_purchase_item(self):
@@ -104,6 +120,20 @@ class ShoppingCart(QMainWindow):
         self.table.clearSelection()
         self.toolbar.removeAction(self.remove_shopping_item)
         self.toolbar.removeAction(self.update_shopping_item)
+
+    def __display_cart_total(self):
+        display_total = QMessageBox()
+        display_total.setWindowTitle(self.shopping_id)
+        display_text = "Current Cart Summary \n"
+        display_text += f"Number of Items: {self.cart_quantity} \n"
+        if len(self.payload) <= 0:
+            display_text = "Cart is empty."
+        else:
+            for cart in self.payload:
+                display_text += f"{cart[1]} {cart[3]} @ {cart[2]} = {(cart[2] * cart[3]):.2f} \n"
+            display_text += f"Cart Total: ${self.cart_total:.2f}"
+        display_total.setText(display_text)
+        display_total.exec()
 
     class RemoveShoppingItem(QDialog):
         def __init__(self, item_id, item_name, item_quantity):

@@ -1,7 +1,14 @@
+"""
+CSC500-1 Final Portfolio
+Lawrence Wilson
+August 3, 2025
+
+"""
+
 from PyQt6.QtWidgets import (QApplication, QLabel, QWidget, QGridLayout, \
                              QLineEdit, QPushButton, QMainWindow, QTableWidget, QTableWidgetItem,
                              QDialog, QVBoxLayout, QComboBox, QToolBar, QStatusBar, QHeaderView, QMessageBox)
-from PyQt6.QtGui import QAction, QColor, QIcon
+from PyQt6.QtGui import QAction, QIcon
 import sys
 import sqlite3
 from ShoppingCart import ShoppingCart
@@ -23,6 +30,9 @@ class PrimaryWindow(QMainWindow):
         # Secondary window access - Add shopping cart
         self.secondary_window = None
 
+        self.quit_shopping_cart = QAction(QIcon("project_icons/cart_exit.png"), "Quit", self)
+        self.quit_shopping_cart.triggered.connect(self.close)
+
         self.add_shopping_cart = QAction(QIcon("project_icons/add_shopping_cart.png"), "Add Cart", self)
         self.add_shopping_cart.triggered.connect(self.__secondary_window_make_visible)
 
@@ -37,9 +47,9 @@ class PrimaryWindow(QMainWindow):
         self.toolbar = QToolBar()
         self.toolbar.setMovable(True)
         self.addToolBar(self.toolbar)
+        self.toolbar.addAction(self.quit_shopping_cart)
         self.toolbar.addAction(self.add_shopping_cart)
         self.toolbar.addAction(self.load_shopping_carts)
-        # self.toolbar.addWidget(self.cart_combobox)
 
         self.shopper_name_label = QLabel("Shopper Name: ")
         self.shopper_name_input = QLineEdit()
