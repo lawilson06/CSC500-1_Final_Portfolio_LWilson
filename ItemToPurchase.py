@@ -6,26 +6,30 @@ import sys
 import sqlite3
 
 class ItemToPurchase(QDialog):
-    def __init__(self, shopping_id):
+    def __init__(self, shopping_id, item_id=None, name=None, price=None, quantity=None, description=None):
         super().__init__()
         self.setWindowTitle("Item To Purchase")
 
         self.shopping_id = shopping_id
+        self.item_id = item_id
 
         self.item_name_label = QLabel("Enter the item's name: ")
-        self.__item_name = QLineEdit()
+        self.__item_name = QLineEdit(name if name is not None else "")
 
         self.item_price_label = QLabel("Enter the item's price: ")
-        self.__item_price = QLineEdit()
+        self.__item_price = QLineEdit(price if price is not None else "")
 
         self.item_quantity_label = QLabel("Enter the item's quantity: ")
-        self.__item_quantity = QLineEdit()
+        self.__item_quantity = QLineEdit(quantity if quantity is not None else "")
 
         self.item_description_label = QLabel("Enter the item's description: ")
-        self.__item_description = QLineEdit()
+        self.__item_description = QLineEdit(description if description is not None else "")
 
         self.add_item_button = QPushButton("Add Item(s)")
         self.add_item_button.clicked.connect(self.__insert_shopping_item)
+
+        self.update_item_button = QPushButton("Update Item(s)")
+        self.update_item_button.clicked.connect(self.__update_shopping_item)
 
         layout = QGridLayout()
 
@@ -41,8 +45,10 @@ class ItemToPurchase(QDialog):
         layout.addWidget(self.item_description_label, 3, 0)
         layout.addWidget(self.__item_description, 3, 1)
 
-        layout.addWidget(self.add_item_button, 4, 0, 1, 2)
-
+        if name is None:
+            layout.addWidget(self.add_item_button, 4, 0, 1, 2)
+        else:
+            layout.addWidget(self.update_item_button, 4, 0, 1, 2)
 
         self.setLayout(layout)
 
@@ -87,6 +93,20 @@ class ItemToPurchase(QDialog):
                            "shopping_id) VALUES (?, ?, ?, ?, ?)", (self.__item_name.text(), item_price,
                                                                    item_quantity, self.__item_description.text(),
                                                                    self.shopping_id))
+            connection.commit()
+            cursor.close()
+            connection.close()
+            self.close()
+
+    def __update_shopping_item(self):
+        valid_entries, item_quantity, item_price = self.__check_user_input()
+        if valid_entries:
+            connection = sqlite3.connect("ShoppingCartDB.db")
+            cursor = connection.cursor()
+            cursor.execute("UPDATE shoppingcart SET item_name = ?, item_price = ?, item_quantity = ?, "
+                           "item_description = ? WHERE id = ?", (self.__item_name.text(), item_price,
+                                                                   item_quantity, self.__item_description.text(),
+                                                                   self.item_id))
             connection.commit()
             cursor.close()
             connection.close()

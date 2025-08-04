@@ -15,10 +15,17 @@ class ShoppingCart(QMainWindow):
 
         self.add_shopping_item = QAction(QIcon("project_icons/add_shopping_cart.png"), "Add Item to Purchase", self)
         self.add_shopping_item.triggered.connect(self.__add_purchase_item)
+        self.update_shopping_item = QAction(QIcon("project_icons/update_shopping_cart.png"), "Update Cart Item", self)
+        self.update_shopping_item.triggered.connect(self.__update_purchase_item)
+        self.remove_shopping_item =QAction(QIcon("project_icons/remove_item_shopping_cart.png"), "Remove Cart Item",
+                                           self)
+        self.remove_shopping_item.triggered.connect(self.__remove_purchase_item)
+
         self.toolbar = QToolBar()
         self.toolbar.setMovable(True)
         self.addToolBar(self.toolbar)
         self.toolbar.addAction(self.add_shopping_item)
+
 
         self.shopping_id = shopping_id
         self.cart_date = user_date
@@ -37,6 +44,9 @@ class ShoppingCart(QMainWindow):
         self.setStatusBar(self.statusbar)
         self.statusbar.addWidget(self.shopper_label)
 
+        self.table.cellClicked.connect(self.__item_record_clicked)
+
+        print(self.table.currentRow())
         self.__populate_table()
 
     def __populate_table(self):
@@ -55,3 +65,26 @@ class ShoppingCart(QMainWindow):
         item_dialog = ItemToPurchase(self.shopping_id)
         item_dialog.exec()
         self.__populate_table()
+
+    def __item_record_clicked(self):
+        self.toolbar.addAction(self.update_shopping_item)
+        self.toolbar.addAction(self.remove_shopping_item)
+
+    def __update_purchase_item(self):
+        current_row = self.table.currentRow()
+        print(current_row)
+        item_id = self.table.item(current_row, 0).text()
+        item_name = self.table.item(current_row, 1).text()
+        item_price = self.table.item(current_row, 2).text()
+        item_quantity = self.table.item(current_row, 3).text()
+        item_description = self.table.item(current_row, 4).text()
+
+        update_dialog = ItemToPurchase(self.shopping_id, item_id, item_name, item_price, item_quantity,item_description)
+        update_dialog.exec()
+        self.__populate_table()
+        self.table.clearSelection()
+        self.toolbar.removeAction(self.update_shopping_item)
+
+    def __remove_purchase_item(self):
+        pass
+
