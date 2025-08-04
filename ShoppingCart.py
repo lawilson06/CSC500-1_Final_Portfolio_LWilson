@@ -8,10 +8,11 @@ from ItemToPurchase import ItemToPurchase
 
 
 class ShoppingCart(QMainWindow):
-    def __init__(self, shopping_id, user_date, shopper_name):
+    def __init__(self, shopping_id, user_date, shopper_name, primary_window):
         super().__init__()
         self.setWindowTitle("Shopping Cart Menu")
         self.setMinimumSize(800, 600)
+        self.primary_window = primary_window
 
         self.add_shopping_item = QAction(QIcon("project_icons/add_shopping_cart.png"), "Add Item to Purchase", self)
         self.add_shopping_item.triggered.connect(self.__add_purchase_item)
@@ -49,6 +50,12 @@ class ShoppingCart(QMainWindow):
         print(self.table.currentRow())
         self.__populate_table()
 
+    def closeEvent(self, event):
+        self.primary_window.show()
+        self.primary_window.secondary_window = None
+        self.primary_window.shopper_name_input.clear()
+        event.accept()
+
     def __populate_table(self):
         connection = sqlite3.connect("ShoppingCartDB.db")
         payload = connection.execute("SELECT id, item_name, item_price, item_quantity, item_description "
@@ -70,7 +77,7 @@ class ShoppingCart(QMainWindow):
         self.toolbar.addAction(self.update_shopping_item)
         self.toolbar.addAction(self.remove_shopping_item)
 
-    def __update_purchase_item(self):
+    def __record_assign_helper(self):
         current_row = self.table.currentRow()
         print(current_row)
         item_id = self.table.item(current_row, 0).text()
@@ -78,13 +85,52 @@ class ShoppingCart(QMainWindow):
         item_price = self.table.item(current_row, 2).text()
         item_quantity = self.table.item(current_row, 3).text()
         item_description = self.table.item(current_row, 4).text()
+        return item_id, item_name, item_price, item_quantity, item_description
 
+    def __update_purchase_item(self):
+        item_id, item_name, item_price, item_quantity, item_description = self.__record_assign_helper()
         update_dialog = ItemToPurchase(self.shopping_id, item_id, item_name, item_price, item_quantity,item_description)
         update_dialog.exec()
         self.__populate_table()
         self.table.clearSelection()
         self.toolbar.removeAction(self.update_shopping_item)
+        self.toolbar.removeAction(self.remove_shopping_item)
 
     def __remove_purchase_item(self):
-        pass
+        item_id, item_name, item_price, item_quantity, item_description = self.__record_assign_helper()
+        remove_obj = self.RemoveShoppingItem(item_id, item_name, item_quantity)
+        remove_obj.exec()
+        self.__populate_table()
+        self.table.clearSelection()
+        self.toolbar.removeAction(self.remove_shopping_item)
+        self.toolbar.removeAction(self.update_shopping_item)
 
+    class RemoveShoppingItem(QDialog):
+        def __init__(self, item_id, item_name, item_quantity):
+            super().__init__()
+            self.setWindowTitle(f"Remove Item: {item_name}")
+            self.item_id = item_id
+            self.item_name = item_name
+            self.item_quantity = item_quantity
+
+            self.details_label = QLabel(f"Are you sure you wish to remove {self.item_name} | "
+                                        f"Quantity: {self.item_quantity}")
+
+            self.confirm_button = QPushButton("Confirm")
+            self.confirm_button.clicked.connect(self.__remove_cart_item)
+            self.decline_button = QPushButton("Decline")
+            self.decline_button.clicked.connect(self.close)
+
+            layout = QVBoxLayout()
+            layout.addWidget(self.details_label)
+            layout.addWidget(self.confirm_button)
+            self.setLayout(layout)
+
+        def __remove_cart_item(self):
+            connection = sqlite3.connect("ShoppingCartDB.db")
+            cursor = connection.cursor()
+            cursor.execute("DELETE FROM shoppingcart WHERE id = ?", (self.item_id,))
+            connection.commit()
+            cursor.close()
+            connection.close()
+            self.close()

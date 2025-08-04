@@ -1,8 +1,6 @@
 from PyQt6.QtWidgets import (QApplication, QLabel, QWidget, QGridLayout, \
                              QLineEdit, QPushButton, QMainWindow, QTableWidget, QTableWidgetItem,
                              QDialog, QVBoxLayout, QComboBox, QToolBar, QStatusBar, QHeaderView, QMessageBox)
-from PyQt6.QtGui import QAction, QColor, QIcon
-import sys
 import sqlite3
 
 class ItemToPurchase(QDialog):
@@ -55,7 +53,6 @@ class ItemToPurchase(QDialog):
     def __check_user_input(self):
         error_widget = QMessageBox()
         error_widget.setWindowTitle("Error")
-        print("Hello")
         item_quantity = -1
         item_price = 0
         valid_entries = False

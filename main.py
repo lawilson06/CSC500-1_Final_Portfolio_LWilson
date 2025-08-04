@@ -64,7 +64,8 @@ class PrimaryWindow(QMainWindow):
         data_check, cart_date = self.__secondary_window_preliminary_data_check()
         if self.secondary_window is None and data_check:
             self.__insert_shopping_data(shopping_id, cart_date)
-            self.secondary_window = ShoppingCart(shopping_id, cart_date, self.shopper_name_input.text().capitalize())
+            self.secondary_window = ShoppingCart(shopping_id, cart_date, self.shopper_name_input.text().capitalize(),
+                                                 primary_obj)
             self.secondary_window.show()
             primary_obj.hide()
 
