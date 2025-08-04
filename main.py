@@ -85,7 +85,6 @@ class PrimaryWindow(QMainWindow):
         try:
             cart_date = datetime.strptime(self.shopping_cart_date_input.text(), "%m/%d/%Y")
             cart_date = cart_date.strftime("%m/%d/%Y")
-            print(cart_date)
             valid_entries = True
         except Exception as e:
             print(e)
@@ -111,7 +110,6 @@ class PrimaryWindow(QMainWindow):
         cart_data = self.__fetch_shopping_cart_ids()
         for cart in cart_data:
             cart_list.append(cart[0])
-        print(cart_list)
         self.cart_combobox.clear()
         self.cart_combobox.addItems(cart_list)
         self.toolbar.addAction(self.display_shopping_carts)

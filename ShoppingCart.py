@@ -1,7 +1,7 @@
 from PyQt6.QtWidgets import (QApplication, QLabel, QWidget, QGridLayout, \
                              QLineEdit, QPushButton, QMainWindow, QTableWidget, QTableWidgetItem,
                              QDialog, QVBoxLayout, QComboBox, QToolBar, QStatusBar, QHeaderView, QMessageBox)
-from PyQt6.QtGui import QAction, QColor, QIcon
+from PyQt6.QtGui import QAction, QIcon
 from PyQt6.QtCore import QTimer
 import sqlite3
 from ItemToPurchase import ItemToPurchase
@@ -21,7 +21,7 @@ class ShoppingCart(QMainWindow):
         self.add_shopping_item = QAction(QIcon("project_icons/add_shopping_cart.png"), "Add Item to Purchase", self)
         self.add_shopping_item.triggered.connect(self.__add_purchase_item)
         self.cart_output = QAction(QIcon("project_icons/cart_total.png"), "View Current Cart Totals", self)
-        self.cart_output.triggered.connect(self.__display_cart_total)
+        self.cart_output.triggered.connect(self.__display_current_total)
         self.update_shopping_item = QAction(QIcon("project_icons/update_shopping_cart.png"), "Update Cart Item", self)
         self.update_shopping_item.triggered.connect(self.__update_purchase_item)
         self.remove_shopping_item =QAction(QIcon("project_icons/remove_item_shopping_cart.png"), "Remove Cart Item",
@@ -54,7 +54,6 @@ class ShoppingCart(QMainWindow):
 
         self.table.cellClicked.connect(self.__item_record_clicked)
 
-        print(self.table.currentRow())
         self.__populate_table()
 
     def closeEvent(self, event):
@@ -77,7 +76,6 @@ class ShoppingCart(QMainWindow):
             self.cart_quantity += rec[3]
         self.table.setRowCount(0)
         for index, row_item in enumerate(self.payload):
-            print(index, row_item)
             self.table.insertRow(index)
             for col_index, col_item in enumerate(row_item):
                 self.table.setItem(index, col_index, QTableWidgetItem(str(col_item)))
@@ -95,7 +93,6 @@ class ShoppingCart(QMainWindow):
 
     def __record_assign_helper(self):
         current_row = self.table.currentRow()
-        print(current_row)
         item_id = self.table.item(current_row, 0).text()
         item_name = self.table.item(current_row, 1).text()
         item_price = self.table.item(current_row, 2).text()
@@ -121,7 +118,7 @@ class ShoppingCart(QMainWindow):
         self.toolbar.removeAction(self.remove_shopping_item)
         self.toolbar.removeAction(self.update_shopping_item)
 
-    def __display_cart_total(self):
+    def __display_current_total(self):
         display_total = QMessageBox()
         display_total.setWindowTitle(self.shopping_id)
         display_text = "Current Cart Summary \n"

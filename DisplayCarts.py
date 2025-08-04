@@ -44,7 +44,6 @@ class DisplayCarts(QDialog):
         self.payload = cursor.fetchall()
         self.table.setRowCount(0)
         for index, row_item in enumerate(self.payload):
-            print(index, row_item)
             self.table.insertRow(index)
             for col_index, col_item in enumerate(row_item):
                 self.table.setItem(index, col_index, QTableWidgetItem(str(col_item)))
@@ -65,7 +64,7 @@ class DisplayCarts(QDialog):
         for cart in self.payload:
             self.cart_total += (cart[2] * cart[3])
             self.cart_quantity += cart[3]
-        print(self.cart_total)
+
 
     def __display_name_date_helper(self):
         display_msg = QMessageBox()

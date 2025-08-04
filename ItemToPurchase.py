@@ -59,9 +59,7 @@ class ItemToPurchase(QDialog):
 
         try:
             item_quantity = int(self.__item_quantity.text())
-            print(item_quantity)
             item_price = round(float(self.__item_price.text()), 2)
-            print(item_price)
             valid_entries = True
         except Exception as e:
             print(e)
@@ -82,7 +80,6 @@ class ItemToPurchase(QDialog):
 
     def __insert_shopping_item(self):
         valid_entries, item_quantity, item_price = self.__check_user_input()
-        print(item_quantity, item_price)
         if valid_entries:
             connection = sqlite3.connect("ShoppingCartDB.db")
             cursor = connection.cursor()
